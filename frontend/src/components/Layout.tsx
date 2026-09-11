@@ -5,16 +5,19 @@ import NotificationBell from "./NotificationBell";
 export default function Layout() {
   const { user, logout } = useAuth();
   return (
-    <div>
-      <header style={{ display: "flex", justifyContent: "space-between", padding: 12, borderBottom: "1px solid #ddd" }}>
-        <Link to="/" style={{ fontWeight: "bold", textDecoration: "none" }}>Velozity Dashboard</Link>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <span>{user?.name} ({user?.role})</span>
-          <NotificationBell />
-          <button onClick={logout}>Log out</button>
+    <div className="app-shell">
+      <nav className="nav-rail">
+        <Link to="/" className="nav-brand">Velozity</Link>
+        <div className="nav-user">
+          <strong>{user?.name}</strong>
+          {user?.role === "ADMIN" ? "Admin" : user?.role === "PM" ? "Project Manager" : "Developer"}
         </div>
-      </header>
-      <Outlet />
+        <NotificationBell />
+        <button onClick={logout} style={{ marginTop: "auto" }}>Log out</button>
+      </nav>
+      <main className="main">
+        <Outlet />
+      </main>
     </div>
   );
 }

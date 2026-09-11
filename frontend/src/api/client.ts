@@ -27,7 +27,12 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    const isRefreshCall = original?.url?.includes("/auth/refresh");
+
+    // A failed refresh call must NOT trigger another refresh — that's the
+    // infinite loop. Let it reject straight through; the caller (AuthContext
+    // bootstrap) handles this failure quietly, it just means "not logged in".
+    if (error.response?.status === 401 && !original._retry && !isRefreshCall) {
       original._retry = true;
       try {
         refreshing =
@@ -46,7 +51,11 @@ api.interceptors.response.use(
         return api(original);
       } catch {
         setAccessToken(null);
-        window.location.href = "/login";
+        // Only force-navigate if we're not already on the login page —
+        // otherwise this reloads /login over and over.
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);

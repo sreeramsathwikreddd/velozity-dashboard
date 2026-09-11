@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../hooks/useSocket";
 import TaskList from "../components/TaskList";
 import ActivityFeed from "../components/ActivityFeed";
+import { STATUS_LABEL, PRIORITY_LABEL } from "../utils/statusMeta";
 
 interface AdminData {
   totalProjects: number;
@@ -29,24 +30,39 @@ export default function Dashboard() {
 
   useSocket({ onPresence: setOnlineNow });
 
-  if (!user || !data) return <p style={{ padding: 24 }}>Loading...</p>;
+  if (!user || !data) return <p className="empty-state">Loading…</p>;
 
   if (user.role === "ADMIN") {
     const d = data as AdminData;
     return (
-      <div style={{ padding: 24 }}>
-        <h2>Admin Overview</h2>
-        <p>Total projects: {d.totalProjects}</p>
-        <p>Overdue tasks: {d.overdueCount}</p>
-        <p>Users online now: {onlineNow ?? d.onlineNow}</p>
-        <ul>
+      <div>
+        <div className="page-header">
+          <h1>Admin overview</h1>
+          <h3>Everything across every client project</h3>
+        </div>
+        <div className="stat-row">
+          <div className="stat">
+            <div className="value">{d.totalProjects}</div>
+            <div className="label">Total projects</div>
+          </div>
+          <div className="stat">
+            <div className="value" style={{ color: "var(--status-overdue)" }}>{d.overdueCount}</div>
+            <div className="label">Overdue tasks</div>
+          </div>
+          <div className="stat">
+            <div className="value">{onlineNow ?? d.onlineNow}</div>
+            <div className="label">Online right now</div>
+          </div>
           {d.tasksByStatus.map((s) => (
-            <li key={s.status}>{s.status}: {s._count}</li>
+            <div className="stat" key={s.status}>
+              <div className="value">{s._count}</div>
+              <div className="label">{STATUS_LABEL[s.status as keyof typeof STATUS_LABEL] ?? s.status}</div>
+            </div>
           ))}
-        </ul>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginTop: 24 }}>
+        </div>
+        <div className="split">
           <div>
-            <h3>All Tasks</h3>
+            <h2>All tasks</h2>
             <TaskList />
           </div>
           <ActivityFeed />
@@ -58,36 +74,60 @@ export default function Dashboard() {
   if (user.role === "PM") {
     const d = data as PMData;
     return (
-      <div style={{ padding: 24 }}>
-        <h2>Your Projects</h2>
-        <ul>
-          {d.projects.map((p) => (
-            <li key={p.id}><Link to={`/projects/${p.id}`}>{p.name}</Link></li>
-          ))}
-        </ul>
-        <h3>Tasks by priority</h3>
-        <ul>
-          {d.tasksByPriority.map((p) => (
-            <li key={p.priority}>{p.priority}: {p._count}</li>
-          ))}
-        </ul>
-        <h3>Due this week</h3>
-        <ul>
-          {d.upcomingDueThisWeek.map((t) => (
-            <li key={t.id}>{t.title} — {new Date(t.dueDate).toLocaleDateString()}</li>
-          ))}
-        </ul>
-        <ActivityFeed />
+      <div>
+        <div className="page-header">
+          <h1>Your projects</h1>
+          <h3>Everything you manage, in one place</h3>
+        </div>
+        <div className="split">
+          <div>
+            <h2>Projects</h2>
+            <ul className="project-link-list">
+              {d.projects.map((p) => (
+                <li key={p.id}><Link to={`/projects/${p.id}`}>{p.name}</Link></li>
+              ))}
+              {d.projects.length === 0 && <li className="empty-state">No projects yet.</li>}
+            </ul>
+
+            <div className="stat-row" style={{ marginTop: 24 }}>
+              {d.tasksByPriority.map((p) => (
+                <div className="stat" key={p.priority}>
+                  <div className="value">{p._count}</div>
+                  <div className="label">{PRIORITY_LABEL[p.priority as keyof typeof PRIORITY_LABEL] ?? p.priority}</div>
+                </div>
+              ))}
+            </div>
+
+            <h2>Due this week</h2>
+            <ul className="project-link-list">
+              {d.upcomingDueThisWeek.map((t) => (
+                <li key={t.id} style={{ padding: "8px 0" }}>
+                  {t.title} — due {new Date(t.dueDate).toLocaleDateString()}
+                </li>
+              ))}
+              {d.upcomingDueThisWeek.length === 0 && (
+                <li className="empty-state">Nothing due in the next 7 days.</li>
+              )}
+            </ul>
+          </div>
+          <ActivityFeed />
+        </div>
       </div>
     );
   }
 
-  // DEVELOPER
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Your Tasks</h2>
-      <TaskList />
-      <ActivityFeed />
+    <div>
+      <div className="page-header">
+        <h1>Your tasks</h1>
+        <h3>Everything assigned to you</h3>
+      </div>
+      <div className="split">
+        <div>
+          <TaskList />
+        </div>
+        <ActivityFeed />
+      </div>
     </div>
   );
 }

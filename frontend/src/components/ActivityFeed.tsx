@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { ActivityEvent } from "../types";
 import { timeAgo } from "../utils/time";
+import { STATUS_LABEL } from "../utils/statusMeta";
 import { useSocket } from "../hooks/useSocket";
 
 interface RawActivity {
@@ -16,11 +17,9 @@ interface RawActivity {
   createdAt: string;
 }
 
-// The API already scopes /tasks/activity/catchup and the socket rooms by
-// role (admin: global, PM: their projects, dev: their tasks) — this
-// component just renders whatever it's handed, it does no filtering itself.
 export default function ActivityFeed({ projectId }: { projectId?: string }) {
   const [events, setEvents] = useState<ActivityEvent[]>([]);
+  const [freshId, setFreshId] = useState<string | null>(null);
 
   useEffect(() => {
     api.get("/tasks/activity/catchup").then((r) => {
@@ -43,6 +42,7 @@ export default function ActivityFeed({ projectId }: { projectId?: string }) {
     onActivity: (event) => {
       if (projectId && event.projectId !== projectId) return;
       setEvents((prev) => [event, ...prev].slice(0, 50));
+      setFreshId(event.id);
     },
   });
 
@@ -52,19 +52,26 @@ export default function ActivityFeed({ projectId }: { projectId?: string }) {
   }, [projectId]);
 
   return (
-    <div>
-      <h3>Live Activity</h3>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {events.map((e) => (
-          <li key={e.id} style={{ padding: "6px 0", borderBottom: "1px solid #eee" }}>
-            {e.actorName} moved {e.taskTitle}
-            {e.fromStatus && e.toStatus ? ` from ${e.fromStatus} \u2192 ${e.toStatus}` : ""}
-            {" \u00b7 "}
-            {timeAgo(e.createdAt)}
-          </li>
-        ))}
-        {events.length === 0 && <li>No activity yet.</li>}
-      </ul>
+    <div className="panel">
+      <div className="panel-header">
+        <h2>Live activity</h2>
+      </div>
+      <div className="panel-body">
+        <ul className="activity-list">
+          {events.map((e) => (
+            <li key={e.id} className={`activity-item ${e.id === freshId ? "flash" : ""}`}>
+              <span className="who">{e.actorName}</span> moved {e.taskTitle}
+              {e.fromStatus && e.toStatus
+                ? ` from ${STATUS_LABEL[e.fromStatus]} to ${STATUS_LABEL[e.toStatus]}`
+                : ""}
+              <span className="when">{timeAgo(e.createdAt)}</span>
+            </li>
+          ))}
+          {events.length === 0 && (
+            <li className="empty-state">No activity yet on this view.</li>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }

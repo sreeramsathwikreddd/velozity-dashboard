@@ -6,12 +6,15 @@ export default function ProjectView() {
   const { id } = useParams<{ id: string }>();
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, padding: 24 }}>
-      <div>
-        <h2>Project Tasks</h2>
-        <TaskList projectId={id} />
+    <div>
+      <div className="page-header">
+        <h1>Project tasks</h1>
+        <h3>Filter, update status, and watch it move live</h3>
       </div>
-      <ActivityFeed projectId={id} />
+      <div className="split">
+        <TaskList projectId={id} />
+        <ActivityFeed projectId={id} />
+      </div>
     </div>
   );
 }

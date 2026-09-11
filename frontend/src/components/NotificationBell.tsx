@@ -35,27 +35,26 @@ export default function NotificationBell() {
   }
 
   return (
-    <div style={{ position: "relative" }}>
-      <button onClick={() => setOpen((o) => !o)}>
-        Notifications{unread > 0 ? ` (${unread})` : ""}
+    <div className="bell-wrap">
+      <button className="bell-btn" onClick={() => setOpen((o) => !o)}>
+        Notifications
+        {unread > 0 && <span className="bell-count">{unread}</span>}
       </button>
       {open && (
-        <div style={{ position: "absolute", right: 0, background: "#fff", border: "1px solid #ccc", width: 320, maxHeight: 400, overflowY: "auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: 8 }}>
-            <strong>Notifications</strong>
+        <div className="bell-dropdown">
+          <div className="bell-dropdown-header">
+            <span>Notifications</span>
             <button onClick={markAllRead}>Mark all read</button>
           </div>
-          {items.length === 0 && <p style={{ padding: 8 }}>No notifications</p>}
+          {items.length === 0 && <p className="empty-state" style={{ padding: "12px" }}>Nothing yet — you'll see task assignments and review requests here.</p>}
           {items.map((n) => (
             <div
               key={n.id}
+              className={`notif-item ${n.read ? "" : "unread"}`}
               onClick={() => !n.read && markRead(n.id)}
-              style={{ padding: 8, borderTop: "1px solid #eee", fontWeight: n.read ? "normal" : "bold", cursor: "pointer" }}
             >
               {n.message}
-              <div style={{ fontSize: 11, color: "#888" }}>
-                {new Date(n.createdAt).toLocaleString()}
-              </div>
+              <div className="notif-time">{new Date(n.createdAt).toLocaleString()}</div>
             </div>
           ))}
         </div>

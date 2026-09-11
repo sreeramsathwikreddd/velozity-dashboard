@@ -21,24 +21,34 @@ export default function Login() {
   }
 
   return (
-    <div style={{ maxWidth: 360, margin: "80px auto" }}>
-      <h1>Velozity Dashboard</h1>
+    <div className="login-wrap">
+      <h1>Velozity</h1>
+      <p className="login-sub">Client project dashboard — sign in to continue</p>
       <form onSubmit={onSubmit}>
-        <div>
-          <label>Email</label>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-        </div>
-        <div>
-          <label>Password</label>
+        <div className="field">
+          <label htmlFor="email">Email</label>
           <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type="password"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            autoComplete="username"
             required
           />
         </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Log in</button>
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        {error && <p className="form-error">{error}</p>}
+        <button type="submit" className="primary">Log in</button>
       </form>
     </div>
   );
